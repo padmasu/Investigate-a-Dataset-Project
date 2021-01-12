@@ -1,0 +1,1703 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Project: Investigating how Sulfur Emissions correlate to Health, GDP, and Land Use\n",
+    "\n",
+    "## Table of Contents\n",
+    "<ul>\n",
+    "<li><a href=\"#intro\">Introduction</a></li>\n",
+    "<li><a href=\"#wrangling\">Data Wrangling</a></li>\n",
+    "<li><a href=\"#eda\">Exploratory Data Analysis</a></li>\n",
+    "<li><a href=\"#conclusions\">Conclusions</a></li>\n",
+    "</ul>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='intro'></a>\n",
+    "## Introduction\n",
+    "\n",
+    "\n",
+    ">The data set I selected for this project is from Gapminder. There is a vast selection of data sets to choose from. I selected 4 datasets regarding human health and economic data. This project specifically targets the years between 1990 and 2000, and researches if and how sulfur emmissions correlate between economic output of a country, land usage, and lung cancer rates.\n",
+    "\n",
+    ">Independent variable \n",
+    "- Sulfur emissions (per person and total)\n",
+    "\n",
+    ">Dependent variables: \n",
+    "- GDP\n",
+    "- Number of new cases for lung cancer among men/women \n",
+    "- Percent of Land Area used for Agriculture"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "% matplotlib inline"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='wrangling'></a>\n",
+    "## Data Wrangling\n",
+    "### Importing Data found on Gapminder\n",
+    ">Datasets imported are new lung cancer cases for both male/female, sulfur emissions per person as well as total, GDP, and finally percent of land that's agriculture.\n",
+    "Units are as follows:\n",
+    "- Sulfur emissions per person : ***Kilograms***\n",
+    "- Total Sulfur emissions : ***Kilotonnes***\n",
+    "- Lung cancer in men/women : ***Number of new cases***\n",
+    "- GDP yearly growth\n",
+    "- Agricultural Land (% of land area)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nlm = pd.read_csv('newlcancer_male.csv')\n",
+    "nlf = pd.read_csv('newlcancer_female.csv')\n",
+    "sulfur_total = pd.read_csv('sulfur_total.csv')\n",
+    "sulfur_person = pd.read_csv('sulfur_person.csv')\n",
+    "gdp = pd.read_csv('gdp.csv')\n",
+    "percent_ag = pd.read_csv('percent_ag.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Creating a 'female' and 'male' column so that I can combine the two lung cancer datasets. \n",
+    "male = np.repeat('male', nlm.shape[0])\n",
+    "female = np.repeat('female', nlf.shape[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nlm['sex'] = male\n",
+    "nlf['sex'] = female"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nl = nlm.append(nlf)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "(374, 29)\n"
+     ]
+    },
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>country</th>\n",
+       "      <th>1990</th>\n",
+       "      <th>1991</th>\n",
+       "      <th>1992</th>\n",
+       "      <th>1993</th>\n",
+       "      <th>1994</th>\n",
+       "      <th>1995</th>\n",
+       "      <th>1996</th>\n",
+       "      <th>1997</th>\n",
+       "      <th>1998</th>\n",
+       "      <th>...</th>\n",
+       "      <th>2008</th>\n",
+       "      <th>2009</th>\n",
+       "      <th>2010</th>\n",
+       "      <th>2011</th>\n",
+       "      <th>2012</th>\n",
+       "      <th>2013</th>\n",
+       "      <th>2014</th>\n",
+       "      <th>2015</th>\n",
+       "      <th>2016</th>\n",
+       "      <th>sex</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Afghanistan</td>\n",
+       "      <td>486.0</td>\n",
+       "      <td>521.0</td>\n",
+       "      <td>569.0</td>\n",
+       "      <td>626.0</td>\n",
+       "      <td>686.0</td>\n",
+       "      <td>741.0</td>\n",
+       "      <td>771.0</td>\n",
+       "      <td>792.0</td>\n",
+       "      <td>810.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1130.0</td>\n",
+       "      <td>1160.0</td>\n",
+       "      <td>1190.0</td>\n",
+       "      <td>1230.0</td>\n",
+       "      <td>1280.0</td>\n",
+       "      <td>1330.0</td>\n",
+       "      <td>1380.0</td>\n",
+       "      <td>1440.0</td>\n",
+       "      <td>1510.0</td>\n",
+       "      <td>male</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Albania</td>\n",
+       "      <td>456.0</td>\n",
+       "      <td>462.0</td>\n",
+       "      <td>460.0</td>\n",
+       "      <td>459.0</td>\n",
+       "      <td>464.0</td>\n",
+       "      <td>478.0</td>\n",
+       "      <td>492.0</td>\n",
+       "      <td>514.0</td>\n",
+       "      <td>539.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>683.0</td>\n",
+       "      <td>697.0</td>\n",
+       "      <td>702.0</td>\n",
+       "      <td>707.0</td>\n",
+       "      <td>716.0</td>\n",
+       "      <td>729.0</td>\n",
+       "      <td>745.0</td>\n",
+       "      <td>764.0</td>\n",
+       "      <td>779.0</td>\n",
+       "      <td>male</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Algeria</td>\n",
+       "      <td>1060.0</td>\n",
+       "      <td>1150.0</td>\n",
+       "      <td>1120.0</td>\n",
+       "      <td>1120.0</td>\n",
+       "      <td>1130.0</td>\n",
+       "      <td>1150.0</td>\n",
+       "      <td>1080.0</td>\n",
+       "      <td>1020.0</td>\n",
+       "      <td>978.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1090.0</td>\n",
+       "      <td>1100.0</td>\n",
+       "      <td>1130.0</td>\n",
+       "      <td>1160.0</td>\n",
+       "      <td>1210.0</td>\n",
+       "      <td>1250.0</td>\n",
+       "      <td>1300.0</td>\n",
+       "      <td>1360.0</td>\n",
+       "      <td>1420.0</td>\n",
+       "      <td>male</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Andorra</td>\n",
+       "      <td>14.5</td>\n",
+       "      <td>15.6</td>\n",
+       "      <td>16.5</td>\n",
+       "      <td>17.0</td>\n",
+       "      <td>17.1</td>\n",
+       "      <td>16.8</td>\n",
+       "      <td>16.8</td>\n",
+       "      <td>17.0</td>\n",
+       "      <td>17.3</td>\n",
+       "      <td>...</td>\n",
+       "      <td>24.7</td>\n",
+       "      <td>25.3</td>\n",
+       "      <td>25.7</td>\n",
+       "      <td>26.4</td>\n",
+       "      <td>27.2</td>\n",
+       "      <td>27.8</td>\n",
+       "      <td>28.5</td>\n",
+       "      <td>29.2</td>\n",
+       "      <td>29.7</td>\n",
+       "      <td>male</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Angola</td>\n",
+       "      <td>277.0</td>\n",
+       "      <td>277.0</td>\n",
+       "      <td>278.0</td>\n",
+       "      <td>281.0</td>\n",
+       "      <td>284.0</td>\n",
+       "      <td>289.0</td>\n",
+       "      <td>289.0</td>\n",
+       "      <td>287.0</td>\n",
+       "      <td>286.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>331.0</td>\n",
+       "      <td>342.0</td>\n",
+       "      <td>354.0</td>\n",
+       "      <td>368.0</td>\n",
+       "      <td>385.0</td>\n",
+       "      <td>401.0</td>\n",
+       "      <td>419.0</td>\n",
+       "      <td>438.0</td>\n",
+       "      <td>457.0</td>\n",
+       "      <td>male</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 29 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "       country    1990    1991    1992    1993    1994    1995    1996  \\\n",
+       "0  Afghanistan   486.0   521.0   569.0   626.0   686.0   741.0   771.0   \n",
+       "1      Albania   456.0   462.0   460.0   459.0   464.0   478.0   492.0   \n",
+       "2      Algeria  1060.0  1150.0  1120.0  1120.0  1130.0  1150.0  1080.0   \n",
+       "3      Andorra    14.5    15.6    16.5    17.0    17.1    16.8    16.8   \n",
+       "4       Angola   277.0   277.0   278.0   281.0   284.0   289.0   289.0   \n",
+       "\n",
+       "     1997   1998  ...     2008    2009    2010    2011    2012    2013  \\\n",
+       "0   792.0  810.0  ...   1130.0  1160.0  1190.0  1230.0  1280.0  1330.0   \n",
+       "1   514.0  539.0  ...    683.0   697.0   702.0   707.0   716.0   729.0   \n",
+       "2  1020.0  978.0  ...   1090.0  1100.0  1130.0  1160.0  1210.0  1250.0   \n",
+       "3    17.0   17.3  ...     24.7    25.3    25.7    26.4    27.2    27.8   \n",
+       "4   287.0  286.0  ...    331.0   342.0   354.0   368.0   385.0   401.0   \n",
+       "\n",
+       "     2014    2015    2016   sex  \n",
+       "0  1380.0  1440.0  1510.0  male  \n",
+       "1   745.0   764.0   779.0  male  \n",
+       "2  1300.0  1360.0  1420.0  male  \n",
+       "3    28.5    29.2    29.7  male  \n",
+       "4   419.0   438.0   457.0  male  \n",
+       "\n",
+       "[5 rows x 29 columns]"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#Confirming the two datasets are combined, as well as the 'sex' column. Good to go!\n",
+    "print(nl.shape)\n",
+    "nl.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Here I'm refining the datasets to only display years between 1990 and 2000"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nl = nl[['1990','1991','1992','1993','1994','1995','1996','1997','1998','1999','2000','sex']]\n",
+    "sulfur_person = sulfur_person[['1990','1991','1992','1993','1994','1995','1996','1997','1998','1999','2000']]\n",
+    "sulfur_total = sulfur_total[['1990','1991','1992','1993','1994','1995','1996','1997','1998','1999','2000']]\n",
+    "\n",
+    "#It was easier to just list out the columns desired from the gdp and agriculture data sets.\n",
+    "percent_ag = percent_ag[['1990','1991','1992','1993','1994','1995','1996','1997','1998','1999','2000']]\n",
+    "gdp_90s = gdp[['1990','1991','1992','1993','1994','1995','1996','1997','1998','1999','2000']]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>1990</th>\n",
+       "      <th>1991</th>\n",
+       "      <th>1992</th>\n",
+       "      <th>1993</th>\n",
+       "      <th>1994</th>\n",
+       "      <th>1995</th>\n",
+       "      <th>1996</th>\n",
+       "      <th>1997</th>\n",
+       "      <th>1998</th>\n",
+       "      <th>1999</th>\n",
+       "      <th>2000</th>\n",
+       "      <th>sex</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>486.0</td>\n",
+       "      <td>521.0</td>\n",
+       "      <td>569.0</td>\n",
+       "      <td>626.0</td>\n",
+       "      <td>686.0</td>\n",
+       "      <td>741.0</td>\n",
+       "      <td>771.0</td>\n",
+       "      <td>792.0</td>\n",
+       "      <td>810.0</td>\n",
+       "      <td>829.0</td>\n",
+       "      <td>856.0</td>\n",
+       "      <td>male</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>456.0</td>\n",
+       "      <td>462.0</td>\n",
+       "      <td>460.0</td>\n",
+       "      <td>459.0</td>\n",
+       "      <td>464.0</td>\n",
+       "      <td>478.0</td>\n",
+       "      <td>492.0</td>\n",
+       "      <td>514.0</td>\n",
+       "      <td>539.0</td>\n",
+       "      <td>561.0</td>\n",
+       "      <td>586.0</td>\n",
+       "      <td>male</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>1060.0</td>\n",
+       "      <td>1150.0</td>\n",
+       "      <td>1120.0</td>\n",
+       "      <td>1120.0</td>\n",
+       "      <td>1130.0</td>\n",
+       "      <td>1150.0</td>\n",
+       "      <td>1080.0</td>\n",
+       "      <td>1020.0</td>\n",
+       "      <td>978.0</td>\n",
+       "      <td>957.0</td>\n",
+       "      <td>952.0</td>\n",
+       "      <td>male</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>14.5</td>\n",
+       "      <td>15.6</td>\n",
+       "      <td>16.5</td>\n",
+       "      <td>17.0</td>\n",
+       "      <td>17.1</td>\n",
+       "      <td>16.8</td>\n",
+       "      <td>16.8</td>\n",
+       "      <td>17.0</td>\n",
+       "      <td>17.3</td>\n",
+       "      <td>17.5</td>\n",
+       "      <td>17.7</td>\n",
+       "      <td>male</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>277.0</td>\n",
+       "      <td>277.0</td>\n",
+       "      <td>278.0</td>\n",
+       "      <td>281.0</td>\n",
+       "      <td>284.0</td>\n",
+       "      <td>289.0</td>\n",
+       "      <td>289.0</td>\n",
+       "      <td>287.0</td>\n",
+       "      <td>286.0</td>\n",
+       "      <td>286.0</td>\n",
+       "      <td>287.0</td>\n",
+       "      <td>male</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     1990    1991    1992    1993    1994    1995    1996    1997   1998  \\\n",
+       "0   486.0   521.0   569.0   626.0   686.0   741.0   771.0   792.0  810.0   \n",
+       "1   456.0   462.0   460.0   459.0   464.0   478.0   492.0   514.0  539.0   \n",
+       "2  1060.0  1150.0  1120.0  1120.0  1130.0  1150.0  1080.0  1020.0  978.0   \n",
+       "3    14.5    15.6    16.5    17.0    17.1    16.8    16.8    17.0   17.3   \n",
+       "4   277.0   277.0   278.0   281.0   284.0   289.0   289.0   287.0  286.0   \n",
+       "\n",
+       "    1999   2000   sex  \n",
+       "0  829.0  856.0  male  \n",
+       "1  561.0  586.0  male  \n",
+       "2  957.0  952.0  male  \n",
+       "3   17.5   17.7  male  \n",
+       "4  286.0  287.0  male  "
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "nl.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>1990</th>\n",
+       "      <th>1991</th>\n",
+       "      <th>1992</th>\n",
+       "      <th>1993</th>\n",
+       "      <th>1994</th>\n",
+       "      <th>1995</th>\n",
+       "      <th>1996</th>\n",
+       "      <th>1997</th>\n",
+       "      <th>1998</th>\n",
+       "      <th>1999</th>\n",
+       "      <th>2000</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>3.94</td>\n",
+       "      <td>3.99</td>\n",
+       "      <td>3.73</td>\n",
+       "      <td>3.41</td>\n",
+       "      <td>3.23</td>\n",
+       "      <td>3.16</td>\n",
+       "      <td>3.14</td>\n",
+       "      <td>3.12</td>\n",
+       "      <td>3.11</td>\n",
+       "      <td>3.09</td>\n",
+       "      <td>3.14</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>15.00</td>\n",
+       "      <td>10.40</td>\n",
+       "      <td>3.77</td>\n",
+       "      <td>2.96</td>\n",
+       "      <td>2.46</td>\n",
+       "      <td>2.20</td>\n",
+       "      <td>2.19</td>\n",
+       "      <td>1.56</td>\n",
+       "      <td>1.58</td>\n",
+       "      <td>1.19</td>\n",
+       "      <td>1.15</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>4.46</td>\n",
+       "      <td>4.76</td>\n",
+       "      <td>4.93</td>\n",
+       "      <td>5.01</td>\n",
+       "      <td>4.92</td>\n",
+       "      <td>5.17</td>\n",
+       "      <td>4.98</td>\n",
+       "      <td>5.51</td>\n",
+       "      <td>5.79</td>\n",
+       "      <td>6.45</td>\n",
+       "      <td>6.92</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>7.72</td>\n",
+       "      <td>7.61</td>\n",
+       "      <td>7.62</td>\n",
+       "      <td>6.98</td>\n",
+       "      <td>7.58</td>\n",
+       "      <td>6.89</td>\n",
+       "      <td>6.45</td>\n",
+       "      <td>6.22</td>\n",
+       "      <td>6.02</td>\n",
+       "      <td>5.75</td>\n",
+       "      <td>4.75</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>24.10</td>\n",
+       "      <td>23.50</td>\n",
+       "      <td>23.20</td>\n",
+       "      <td>23.40</td>\n",
+       "      <td>24.10</td>\n",
+       "      <td>22.90</td>\n",
+       "      <td>24.10</td>\n",
+       "      <td>24.40</td>\n",
+       "      <td>24.10</td>\n",
+       "      <td>24.50</td>\n",
+       "      <td>24.20</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "    1990   1991   1992   1993   1994   1995   1996   1997   1998   1999   2000\n",
+       "0   3.94   3.99   3.73   3.41   3.23   3.16   3.14   3.12   3.11   3.09   3.14\n",
+       "1  15.00  10.40   3.77   2.96   2.46   2.20   2.19   1.56   1.58   1.19   1.15\n",
+       "2   4.46   4.76   4.93   5.01   4.92   5.17   4.98   5.51   5.79   6.45   6.92\n",
+       "3   7.72   7.61   7.62   6.98   7.58   6.89   6.45   6.22   6.02   5.75   4.75\n",
+       "4  24.10  23.50  23.20  23.40  24.10  22.90  24.10  24.40  24.10  24.50  24.20"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sulfur_person.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>1990</th>\n",
+       "      <th>1991</th>\n",
+       "      <th>1992</th>\n",
+       "      <th>1993</th>\n",
+       "      <th>1994</th>\n",
+       "      <th>1995</th>\n",
+       "      <th>1996</th>\n",
+       "      <th>1997</th>\n",
+       "      <th>1998</th>\n",
+       "      <th>1999</th>\n",
+       "      <th>2000</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>57.90</td>\n",
+       "      <td>59.40</td>\n",
+       "      <td>61.00</td>\n",
+       "      <td>62.60</td>\n",
+       "      <td>64.20</td>\n",
+       "      <td>65.90</td>\n",
+       "      <td>67.70</td>\n",
+       "      <td>69.40</td>\n",
+       "      <td>71.30</td>\n",
+       "      <td>73.20</td>\n",
+       "      <td>75.10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>48.80</td>\n",
+       "      <td>34.20</td>\n",
+       "      <td>12.50</td>\n",
+       "      <td>9.91</td>\n",
+       "      <td>8.32</td>\n",
+       "      <td>7.49</td>\n",
+       "      <td>7.47</td>\n",
+       "      <td>5.36</td>\n",
+       "      <td>5.45</td>\n",
+       "      <td>4.12</td>\n",
+       "      <td>4.01</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>112.00</td>\n",
+       "      <td>122.00</td>\n",
+       "      <td>130.00</td>\n",
+       "      <td>135.00</td>\n",
+       "      <td>135.00</td>\n",
+       "      <td>145.00</td>\n",
+       "      <td>143.00</td>\n",
+       "      <td>160.00</td>\n",
+       "      <td>171.00</td>\n",
+       "      <td>193.00</td>\n",
+       "      <td>210.00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>64.00</td>\n",
+       "      <td>64.60</td>\n",
+       "      <td>66.60</td>\n",
+       "      <td>62.60</td>\n",
+       "      <td>69.50</td>\n",
+       "      <td>64.90</td>\n",
+       "      <td>62.30</td>\n",
+       "      <td>61.40</td>\n",
+       "      <td>60.60</td>\n",
+       "      <td>59.00</td>\n",
+       "      <td>49.60</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>1.51</td>\n",
+       "      <td>1.47</td>\n",
+       "      <td>1.45</td>\n",
+       "      <td>1.47</td>\n",
+       "      <td>1.52</td>\n",
+       "      <td>1.46</td>\n",
+       "      <td>1.54</td>\n",
+       "      <td>1.58</td>\n",
+       "      <td>1.57</td>\n",
+       "      <td>1.62</td>\n",
+       "      <td>1.61</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     1990    1991    1992    1993    1994    1995    1996    1997    1998  \\\n",
+       "0   57.90   59.40   61.00   62.60   64.20   65.90   67.70   69.40   71.30   \n",
+       "1   48.80   34.20   12.50    9.91    8.32    7.49    7.47    5.36    5.45   \n",
+       "2  112.00  122.00  130.00  135.00  135.00  145.00  143.00  160.00  171.00   \n",
+       "3   64.00   64.60   66.60   62.60   69.50   64.90   62.30   61.40   60.60   \n",
+       "4    1.51    1.47    1.45    1.47    1.52    1.46    1.54    1.58    1.57   \n",
+       "\n",
+       "     1999    2000  \n",
+       "0   73.20   75.10  \n",
+       "1    4.12    4.01  \n",
+       "2  193.00  210.00  \n",
+       "3   59.00   49.60  \n",
+       "4    1.62    1.61  "
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sulfur_total.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>1990</th>\n",
+       "      <th>1991</th>\n",
+       "      <th>1992</th>\n",
+       "      <th>1993</th>\n",
+       "      <th>1994</th>\n",
+       "      <th>1995</th>\n",
+       "      <th>1996</th>\n",
+       "      <th>1997</th>\n",
+       "      <th>1998</th>\n",
+       "      <th>1999</th>\n",
+       "      <th>2000</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>-0.885</td>\n",
+       "      <td>7.340</td>\n",
+       "      <td>1.22</td>\n",
+       "      <td>-5.140</td>\n",
+       "      <td>-2.570</td>\n",
+       "      <td>28.30</td>\n",
+       "      <td>7.31</td>\n",
+       "      <td>5.88</td>\n",
+       "      <td>5.01</td>\n",
+       "      <td>4.95</td>\n",
+       "      <td>1.74</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1.940</td>\n",
+       "      <td>-28.900</td>\n",
+       "      <td>-8.79</td>\n",
+       "      <td>7.380</td>\n",
+       "      <td>5.930</td>\n",
+       "      <td>11.20</td>\n",
+       "      <td>7.66</td>\n",
+       "      <td>-11.10</td>\n",
+       "      <td>11.80</td>\n",
+       "      <td>9.36</td>\n",
+       "      <td>6.76</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>-1.450</td>\n",
+       "      <td>-1.080</td>\n",
+       "      <td>1.65</td>\n",
+       "      <td>-2.230</td>\n",
+       "      <td>-0.999</td>\n",
+       "      <td>3.69</td>\n",
+       "      <td>3.72</td>\n",
+       "      <td>1.02</td>\n",
+       "      <td>5.03</td>\n",
+       "      <td>3.14</td>\n",
+       "      <td>2.45</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>3.830</td>\n",
+       "      <td>2.680</td>\n",
+       "      <td>1.11</td>\n",
+       "      <td>-0.905</td>\n",
+       "      <td>2.300</td>\n",
+       "      <td>2.40</td>\n",
+       "      <td>3.94</td>\n",
+       "      <td>8.05</td>\n",
+       "      <td>2.25</td>\n",
+       "      <td>3.59</td>\n",
+       "      <td>1.42</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>-0.445</td>\n",
+       "      <td>0.991</td>\n",
+       "      <td>-5.84</td>\n",
+       "      <td>-24.000</td>\n",
+       "      <td>1.340</td>\n",
+       "      <td>15.00</td>\n",
+       "      <td>20.00</td>\n",
+       "      <td>5.50</td>\n",
+       "      <td>0.00</td>\n",
+       "      <td>3.24</td>\n",
+       "      <td>3.01</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "    1990    1991  1992    1993   1994   1995   1996   1997   1998  1999  2000\n",
+       "0 -0.885   7.340  1.22  -5.140 -2.570  28.30   7.31   5.88   5.01  4.95  1.74\n",
+       "1  1.940 -28.900 -8.79   7.380  5.930  11.20   7.66 -11.10  11.80  9.36  6.76\n",
+       "2 -1.450  -1.080  1.65  -2.230 -0.999   3.69   3.72   1.02   5.03  3.14  2.45\n",
+       "3  3.830   2.680  1.11  -0.905  2.300   2.40   3.94   8.05   2.25  3.59  1.42\n",
+       "4 -0.445   0.991 -5.84 -24.000  1.340  15.00  20.00   5.50   0.00  3.24  3.01"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "gdp_90s.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>1990</th>\n",
+       "      <th>1991</th>\n",
+       "      <th>1992</th>\n",
+       "      <th>1993</th>\n",
+       "      <th>1994</th>\n",
+       "      <th>1995</th>\n",
+       "      <th>1996</th>\n",
+       "      <th>1997</th>\n",
+       "      <th>1998</th>\n",
+       "      <th>1999</th>\n",
+       "      <th>2000</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0.583</td>\n",
+       "      <td>0.583</td>\n",
+       "      <td>0.583</td>\n",
+       "      <td>0.581</td>\n",
+       "      <td>0.579</td>\n",
+       "      <td>0.578</td>\n",
+       "      <td>0.578</td>\n",
+       "      <td>0.579</td>\n",
+       "      <td>0.580</td>\n",
+       "      <td>0.578</td>\n",
+       "      <td>0.578</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0.409</td>\n",
+       "      <td>0.411</td>\n",
+       "      <td>0.411</td>\n",
+       "      <td>0.411</td>\n",
+       "      <td>0.411</td>\n",
+       "      <td>0.411</td>\n",
+       "      <td>0.413</td>\n",
+       "      <td>0.414</td>\n",
+       "      <td>0.416</td>\n",
+       "      <td>0.418</td>\n",
+       "      <td>0.418</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0.162</td>\n",
+       "      <td>0.162</td>\n",
+       "      <td>0.163</td>\n",
+       "      <td>0.163</td>\n",
+       "      <td>0.166</td>\n",
+       "      <td>0.166</td>\n",
+       "      <td>0.166</td>\n",
+       "      <td>0.167</td>\n",
+       "      <td>0.167</td>\n",
+       "      <td>0.167</td>\n",
+       "      <td>0.168</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>0.489</td>\n",
+       "      <td>0.489</td>\n",
+       "      <td>0.489</td>\n",
+       "      <td>0.489</td>\n",
+       "      <td>0.489</td>\n",
+       "      <td>0.489</td>\n",
+       "      <td>0.489</td>\n",
+       "      <td>0.489</td>\n",
+       "      <td>0.489</td>\n",
+       "      <td>0.489</td>\n",
+       "      <td>0.489</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0.460</td>\n",
+       "      <td>0.461</td>\n",
+       "      <td>0.461</td>\n",
+       "      <td>0.461</td>\n",
+       "      <td>0.461</td>\n",
+       "      <td>0.461</td>\n",
+       "      <td>0.461</td>\n",
+       "      <td>0.461</td>\n",
+       "      <td>0.461</td>\n",
+       "      <td>0.460</td>\n",
+       "      <td>0.460</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "    1990   1991   1992   1993   1994   1995   1996   1997   1998   1999   2000\n",
+       "0  0.583  0.583  0.583  0.581  0.579  0.578  0.578  0.579  0.580  0.578  0.578\n",
+       "1  0.409  0.411  0.411  0.411  0.411  0.411  0.413  0.414  0.416  0.418  0.418\n",
+       "2  0.162  0.162  0.163  0.163  0.166  0.166  0.166  0.167  0.167  0.167  0.168\n",
+       "3  0.489  0.489  0.489  0.489  0.489  0.489  0.489  0.489  0.489  0.489  0.489\n",
+       "4  0.460  0.461  0.461  0.461  0.461  0.461  0.461  0.461  0.461  0.460  0.460"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "percent_ag.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Data Cleaning\n",
+    "Checking for any NULL and DUPLICATE values in the subset of data I selected. Looks like there are nulls present in one dataset!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1990    0\n",
+       "1991    0\n",
+       "1992    0\n",
+       "1993    0\n",
+       "1994    0\n",
+       "1995    0\n",
+       "1996    0\n",
+       "1997    0\n",
+       "1998    0\n",
+       "1999    0\n",
+       "2000    0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 14,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "nl.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "nl.duplicated().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1990    0\n",
+       "1991    0\n",
+       "1992    0\n",
+       "1993    0\n",
+       "1994    0\n",
+       "1995    0\n",
+       "1996    0\n",
+       "1997    0\n",
+       "1998    0\n",
+       "1999    0\n",
+       "2000    0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sulfur_person.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 17,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sulfur_person.duplicated().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1990    0\n",
+       "1991    0\n",
+       "1992    0\n",
+       "1993    0\n",
+       "1994    0\n",
+       "1995    0\n",
+       "1996    0\n",
+       "1997    0\n",
+       "1998    0\n",
+       "1999    0\n",
+       "2000    0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 18,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sulfur_total.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 19,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sulfur_total.duplicated().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1990    0\n",
+       "1991    0\n",
+       "1992    0\n",
+       "1993    0\n",
+       "1994    0\n",
+       "1995    0\n",
+       "1996    0\n",
+       "1997    0\n",
+       "1998    0\n",
+       "1999    0\n",
+       "2000    0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 20,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "gdp_90s.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1"
+      ]
+     },
+     "execution_count": 21,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "gdp_90s.duplicated().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1990    30\n",
+       "1991    27\n",
+       "1992     8\n",
+       "1993     4\n",
+       "1994     4\n",
+       "1995     4\n",
+       "1996     4\n",
+       "1997     4\n",
+       "1998     4\n",
+       "1999     4\n",
+       "2000     2\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "percent_ag.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "2"
+      ]
+     },
+     "execution_count": 23,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "percent_ag.duplicated().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Dropping the NULL values from the agriculture dataset\n",
+    "percent_ag.dropna(inplace=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1990    0\n",
+       "1991    0\n",
+       "1992    0\n",
+       "1993    0\n",
+       "1994    0\n",
+       "1995    0\n",
+       "1996    0\n",
+       "1997    0\n",
+       "1998    0\n",
+       "1999    0\n",
+       "2000    0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 25,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "percent_ag.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# After discussing the structure of the data and any problems that need to be\n",
+    "#   cleaned, perform those cleaning steps in the second part of this section.\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='eda'></a>\n",
+    "## Exploratory Data Analysis\n",
+    "\n",
+    "> **Tip**: Now that you've trimmed and cleaned your data, you're ready to move on to exploration. Compute statistics and create visualizations with the goal of addressing the research questions that you posed in the Introduction section. It is recommended that you be systematic with your approach. Look at one variable at a time, and then follow it up by looking at relationships between variables.\n",
+    "\n",
+    "## Is there a positive correlation between sulfur emissions and higher number of new lung cancer cases?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 164 entries, 0 to 163\n",
+      "Data columns (total 11 columns):\n",
+      "1990    164 non-null float64\n",
+      "1991    164 non-null float64\n",
+      "1992    164 non-null float64\n",
+      "1993    164 non-null float64\n",
+      "1994    164 non-null float64\n",
+      "1995    164 non-null float64\n",
+      "1996    164 non-null float64\n",
+      "1997    164 non-null float64\n",
+      "1998    164 non-null float64\n",
+      "1999    164 non-null float64\n",
+      "2000    164 non-null float64\n",
+      "dtypes: float64(11)\n",
+      "memory usage: 14.2 KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Checking the data types of each dataset\n",
+    "sulfur_total.info()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "Int64Index: 374 entries, 0 to 186\n",
+      "Data columns (total 11 columns):\n",
+      "1990    374 non-null float64\n",
+      "1991    374 non-null float64\n",
+      "1992    374 non-null float64\n",
+      "1993    374 non-null float64\n",
+      "1994    374 non-null float64\n",
+      "1995    374 non-null float64\n",
+      "1996    374 non-null float64\n",
+      "1997    374 non-null float64\n",
+      "1998    374 non-null float64\n",
+      "1999    374 non-null float64\n",
+      "2000    374 non-null float64\n",
+      "dtypes: float64(11)\n",
+      "memory usage: 35.1 KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "nl.info()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1990    407.596921\n",
+       "1991    415.629951\n",
+       "1992    368.012780\n",
+       "1993    357.004720\n",
+       "1994    343.775250\n",
+       "1995    332.051357\n",
+       "1996    327.601549\n",
+       "1997    342.613949\n",
+       "1998    328.286611\n",
+       "1999    313.782962\n",
+       "2000    311.103270\n",
+       "dtype: float64"
+      ]
+     },
+     "execution_count": 46,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#Making dataframes made of averages for each column for each dataset\n",
+    "sulfur_tavg = sulfur_total.mean()\n",
+    "sulfur_tavg"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "SyntaxError",
+     "evalue": "invalid syntax (<ipython-input-16-f9073816a6e6>, line 2)",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[0;36m  File \u001b[0;32m\"<ipython-input-16-f9073816a6e6>\"\u001b[0;36m, line \u001b[0;32m2\u001b[0m\n\u001b[0;31m    nl_avg.head()\u001b[0m\n\u001b[0m         ^\u001b[0m\n\u001b[0;31mSyntaxError\u001b[0m\u001b[0;31m:\u001b[0m invalid syntax\n"
+     ]
+    }
+   ],
+   "source": [
+    "nl_avg = nl[nl[mean()]\n",
+    "nl_avg.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1990    17.416488\n",
+       "1991    45.656915\n",
+       "1992    14.800299\n",
+       "1993    13.889951\n",
+       "1994    13.154604\n",
+       "1995    12.640195\n",
+       "1996    12.376476\n",
+       "1997    12.047484\n",
+       "1998    11.891659\n",
+       "1999    11.544762\n",
+       "2000    11.237018\n",
+       "dtype: float64"
+      ]
+     },
+     "execution_count": 49,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sulfur_pavg = sulfur_person.mean()\n",
+    "sulfur_pavg"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Does one sex have a higher number of new lung cancer cases?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Continue to explore the data to address your additional research\n",
+    "#   questions. Add more headers as needed if you have more questions to\n",
+    "#   investigate.\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nl_avg_male = nl.groupby('')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='conclusions'></a>\n",
+    "## Conclusions\n",
+    "\n",
+    "> **Tip**: Finally, summarize your findings and the results that have been performed. Make sure that you are clear with regards to the limitations of your exploration. If you haven't done any statistical tests, do not imply any statistical conclusions. And make sure you avoid implying causation from correlation!\n",
+    "\n",
+    "> **Tip**: Once you are satisfied with your work here, check over your report to make sure that it is satisfies all the areas of the rubric (found on the project submission page at the end of the lesson). You should also probably remove all of the \"Tips\" like this one so that the presentation is as polished as possible.\n",
+    "\n",
+    "## Submitting your Project \n",
+    "\n",
+    "> Before you submit your project, you need to create a .html or .pdf version of this notebook in the workspace here. To do that, run the code cell below. If it worked correctly, you should get a return code of 0, and you should see the generated .html file in the workspace directory (click on the orange Jupyter icon in the upper left).\n",
+    "\n",
+    "> Alternatively, you can download this report as .html via the **File** > **Download as** submenu, and then manually upload it into the workspace directory by clicking on the orange Jupyter icon in the upper left, then using the Upload button.\n",
+    "\n",
+    "> Once you've done this, you can submit your project by clicking on the \"Submit Project\" button in the lower right here. This will create and submit a zip file with this .ipynb doc and the .html or .pdf version you created. Congratulations!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "from subprocess import call\n",
+    "call(['python', '-m', 'nbconvert', 'Investigate_a_Dataset.ipynb'])"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
